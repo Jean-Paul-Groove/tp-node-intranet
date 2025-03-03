@@ -4,26 +4,25 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/database.js";
 import session from "express-session";
+import users from './data/users.json' with {type:'json'}
+import { UserModel } from "./models/User.js" ;
+import authrouter from "./routers/auth.js";
 // ==========
 // App initialization
 // ==========
 
 dotenv.config();
 const { APP_HOSTNAME, APP_PORT, NODE_ENV } = process.env;
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
-
-app.set("view engine", "pug");
-app.locals.pretty = (NODE_ENV !== 'production'); // Indente correctement le HTML envoyé au client (utile en dev, mais inutile en production)
 
 connectDB();
 // ==========
 // App middlewares
 // ==========
 
-app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({extended: true}))
+app.use(express.json())
 app.use(session({
   name: 'token',
   secret: process.env.SECRET,
@@ -33,8 +32,16 @@ app.use(session({
 // ==========
 // App routers
 // ==========
-
-
+// app.get('/migrate', async ()=> {
+//   const promises = []
+// for(const user of users){
+//  delete user.id 
+//  promises.push(UserModel.create(user))
+// }
+// await Promise.all(promises)
+// console.log("MIGRATION COMPLETE")
+// })
+app.use(authrouter)
 // ==========
 // App start
 // ==========
