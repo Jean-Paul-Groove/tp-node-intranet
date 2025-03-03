@@ -1,12 +1,11 @@
 import dotenv from "dotenv";
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
 import connectDB from "./config/database.js";
 import session from "express-session";
-import users from './data/users.json' with {type:'json'}
-import { UserModel } from "./models/User.js" ;
 import authrouter from "./routers/auth.js";
+import cors from 'cors'
+import userRouter from "./routers/user.js";
+import { auth } from "./middlewares/auth.js";
 // ==========
 // App initialization
 // ==========
@@ -23,6 +22,7 @@ connectDB();
 
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())
+app.use(cors())
 app.use(session({
   name: 'token',
   secret: process.env.SECRET,
@@ -42,6 +42,7 @@ app.use(session({
 // console.log("MIGRATION COMPLETE")
 // })
 app.use(authrouter)
+app.use('/users',auth, userRouter)
 // ==========
 // App start
 // ==========

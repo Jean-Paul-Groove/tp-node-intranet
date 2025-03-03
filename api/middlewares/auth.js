@@ -12,10 +12,25 @@ export function auth(req, res, next) {
                     return
                 }
             }
+        }
+            const token = req.headers.authorization.split('Bearer ')[1]
+          console.log(token)
+          console.log(req.headers.authorization)
+          
+            const payload = jwt.verify(token, process.env.JWT_SECRET)
+            if (payload) {
+                req.session.user = payload.user
+                req.session.token = token
+                next()
+                return
+            }
+        
+        throw new Error('Invalid token')
+    } catch (error) {
+        if(req.session){
             req.session.destroy()
         }
-        res.redirect('/login')
-    } catch (error) {
-        res.redirect('/login')
+        res.status(401).send({error:error.message})
+
     }
 }

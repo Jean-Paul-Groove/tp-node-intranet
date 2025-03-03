@@ -1,5 +1,4 @@
 import { UserModel } from "../models/User.js"
-import querystring from 'node:querystring'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 // export async function SignUpController(req, res) {
@@ -43,7 +42,7 @@ import bcrypt from 'bcrypt'
 //     }
 // }
 
-export async function LoginController(req, res) {
+export async function Login(req, res) {
     try {
         const { email, password } = req.body
         const errors = []
@@ -70,23 +69,23 @@ export async function LoginController(req, res) {
         }
         // ALL CHECKS PASSED, INIT SESSION AND TOKEN
         const token   = jwt.sign({user:{id:user.id,firstName:user.firstName, lastName:user.lastName}}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY })
+        console.log(token)
         req.session.token = token
-        res.status(230)
+        res.statusCode = 200
         res.send({token})
     } catch (error) {
         if(error instanceof Error){
-            res.status = error.status
-            res.send( {message:error.message})
+            res.status(error.status).send({error:error.message})
+            console.log(res)
         }
     }
 }
 
-// export function DisconnectController(req,res){
-//     if(req.session){
-//         req.session.destroy()
-//     }
-//     res.redirect('/login')
-// }
+export function Disconnect(req,res){
+    if(req.session){
+        req.session.destroy()
+    }
+}
 // Private helpers
 function verifyStrings(stringArray, errorArray) {
     for (const string of stringArray) {
