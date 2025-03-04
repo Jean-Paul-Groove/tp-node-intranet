@@ -1,12 +1,12 @@
 <template>
-  <Button class="connexion-button" v-if="isConnected" @click="onDisconnect">
+  <button class="connexion-button" v-if="isConnected" @click="onDisconnect">
     <img :src="disconnect" alt="Disconnect" />
     <span> Déconnexion </span>
-  </Button>
-  <Button class="connexion-button" v-else @click="onConnect">
+  </button>
+  <button class="connexion-button" v-else @click="onConnect">
     <img :src="connect" alt="Connect" />
     <span> Connexion </span>
-  </Button>
+  </button>
 </template>
 
 <script setup lang="ts">
@@ -26,10 +26,10 @@ const { isConnected } = storeToRefs(authStore);
   flex-direction: row;
   gap: 0.5rem;
   padding: 1rem 0.5rem;
-  color: white;
   background: none;
-  border: none;
-  cursor: pointer;
   backdrop-filter: saturate(80%);
+}
+.connexion-button:hover{
+  font-weight: bolder;
 }
 </style>

@@ -1,11 +1,13 @@
 <template>
     <header class="header">
 <div class="branding">
-<img class="logo" :src="sitemap" alt="Site map">
-<span>Intranet</span>
+    <FontAwesomeIcon :icon="['fas','sitemap']"/><span>Intranet</span>
 </div>
 <nav class="header_nav">
-<UserButton v-if="userInfo"/>
+<div class="header_nav_connected" v-if="isConnected">
+<ListButton></ListButton>
+<UserButton />
+</div>
 <ConnexionButton/>
 </nav>
     </header>
@@ -17,8 +19,9 @@ import sitemap from '../assets/sitemap.svg'
 import ConnexionButton from './ConnexionButton.vue';
 import { useAuthStore } from '../stores/auth';
 import UserButton from './UserButton.vue';
-
-const {  userInfo } = storeToRefs(useAuthStore());
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import ListButton from './ListButton.vue';
+const {  isConnected } = storeToRefs(useAuthStore());
 
 
 </script>
@@ -44,6 +47,12 @@ const {  userInfo } = storeToRefs(useAuthStore());
     height: 100%;
 }
 .header_nav{
+    display: flex;
+    height: 100%;
+    align-items: center;
+    gap: 1rem;
+}
+.header_nav_connected{
     display: flex;
     height: 100%;
     align-items: center;

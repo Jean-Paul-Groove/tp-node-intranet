@@ -19,7 +19,6 @@ function onclick():void{
 
 <style scoped>
 .user-button{
-    cursor: pointer;
     background-color: lightgray;
     border: none;
     height: 80%;

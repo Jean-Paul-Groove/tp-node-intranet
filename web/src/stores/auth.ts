@@ -16,7 +16,10 @@ export const useAuthStore = defineStore('user', () => {
   })
 
   onMounted(()=> {
-   token.value = localStorage.getItem('token')
+    const formerToken = localStorage.getItem('JWT')
+    if(formerToken !=null){
+      setToken(formerToken)
+    }
   })
 
 function onConnect(){
@@ -25,26 +28,30 @@ function onConnect(){
 
 function onDisconnect(){
     $router.push({'name':'login'})
-    axios.get(import.meta.env.VITE_API_URL+'/disconnect')
     userInfo.value = null
     resetToken()
 }
 function setToken(newValue:string):void{
-  localStorage.setItem('token',newValue)
+  localStorage.setItem('JWT',newValue)
   token.value = newValue
+  axios.defaults.headers.authorization = 'Bearer '+token.value
 }
 function resetToken():void{
-  localStorage.removeItem('token')
+  localStorage.removeItem('JWT')
   token.value = null
 }
 async function getUserInfo():Promise<void>{
   try{
- const res=  await axios.get(import.meta.env.VITE_API_URL+'/users/current', {"headers":{'Authorization':'Bearer '+token.value}})
- userInfo.value = res.data
- if($router.currentRoute.value.name === 'login'){
-  $router.push({name:'home'})
- }
-  }catch(error){console.log(error)}
+
+      const res=  await axios.get(import.meta.env.VITE_API_URL+'/users/current')
+      userInfo.value = res.data
+      if($router.currentRoute.value.name === 'login'){
+        $router.push({name:'home'})
+      }
+    
+  }catch(error){console.log(error)
+    resetToken()
+  }
 
 }
   return { userInfo, isConnected,  token,onConnect,onDisconnect, setToken }

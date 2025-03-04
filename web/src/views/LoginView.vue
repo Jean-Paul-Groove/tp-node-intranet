@@ -93,12 +93,6 @@ console.log(error)
   width: 7rem;
 }
 .login_button {
-  background: var(--bg-primary);
-  border: none;
-  padding: 0.5rem 0.8rem;
-  color: white;
-  cursor: pointer;
-  width: fit-content;
   margin: auto;
 }
 .login_error-message{
