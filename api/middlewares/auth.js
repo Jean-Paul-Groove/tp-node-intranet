@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 
 export function auth(req, res, next) {
     try {
-       
+       // IF TOKEN SET USER IN REQ
         if(req.headers.authorization){
             const token = req.headers.authorization.split('Bearer ')[1]
             const payload = jwt.verify(token, process.env.JWT_SECRET)

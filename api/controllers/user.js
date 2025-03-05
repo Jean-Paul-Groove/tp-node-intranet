@@ -1,14 +1,16 @@
 import { UserModel } from "../models/User.js"
 import bcrypt from 'bcrypt'
 
-export async function GetCurrent(req, res) {
+export async function GetCurrentUser(req, res) {
     try {
+        // GET CURRENT USER ID
         const { id } = req?.user
         if (id == null) {
             throw new Error('Please provide a user Id')
         }
-
+        // RETRIEVE USER
         const doc = await UserModel.findById(id)
+        // REMOVE PASSWORD
         const { password, ...rest } = doc._doc
         res.send(rest)
     } catch (error) {
@@ -16,33 +18,38 @@ export async function GetCurrent(req, res) {
         res.send({ error: error.message })
     }
 }
-export async function Get(req, res) {
+export async function GetUser(req, res) {
     try {
+        // GET USER ID
         const { id } = req.params
         if (id == null) {
             const error = new Error('Please provide a valid user Id')
             throw error
         }
+        // RETRIEVE USER
         const doc = await UserModel.findById(id)
+        // REMOVE PASSWORD
         const { password, ...rest } = doc._doc
-        console.log(rest)
         res.send(rest)
     } catch (error) {
-        res.statusCode = 404
+        res.statusCode = error.status ?? 404
         res.send({ error: error.message })
     }
 }
-export async function GetRandom(req, res) {
+export async function GetRandomUser(req, res) {
     try {
+        // GET CURRENT USER ID
         const { id } = req?.user
         if (id == null) {
             throw new Error('Current user not found')
         }
+        // FETCH RANDOM USER DIFFERENT FROM CURRENT
         const user = await UserModel.aggregate({ $match: { id: { $not: id } } }).sample(1)
+        // REMOVE PASSWORD
         const { password, ...rest } = user[0]
         res.send(rest)
     } catch (error) {
-        res.statusCode = 404
+        res.statusCode = error.status ?? 404
         res.send({ error: error.message })
     }
 }
@@ -51,23 +58,23 @@ export async function SearchUsers(req, res) {
         const { options, pagination } = req.body
         const { page, size } = validatePagination(pagination)
         const findQuery = {}
+        // BUILD QUERY
         if (options != null) {
             const { category, search } = options
-
-            if (category && category != 'none') {
+            // ADD CATEGORY TO FILTER
+            if (category && category !== 'none') {
                 findQuery.category = category
             }
-            if (search != null) {
-                if (typeof search === 'string' && search.trim() != '') {
-                    const searchRegexp = new RegExp(search, 'i')
-                    findQuery.$or = []
-                    for (const field of searchFields) {
-                        findQuery.$or.push({ [field]: searchRegexp })
-                    }
-
+            // ADD SEARCH TO FILTER ON PREDEFINED FIELDS
+            if (search != null && typeof search ==='string' && search.trim().length>0) {
+                const searchRegexp = new RegExp(search, 'i')
+                findQuery.$or = []
+                for (const field of searchFields) {
+                    findQuery.$or.push({ [field]: searchRegexp })
                 }
             }
         }
+        // FETCH USERS WITHOUT PASSWORD AND TOTAL NUMBER FOR PAGINATION
         const users = await UserModel.find(findQuery, { password: 0 }).limit(size).skip((page - 1) * size).sort('createdAt')
         const total = await UserModel.find(findQuery).countDocuments()
         if (!users) {
@@ -77,8 +84,7 @@ export async function SearchUsers(req, res) {
         }
         res.send({ users, total })
     } catch (error) {
-        console.log(error)
-        res.statusCode = error.status
+        res.statusCode = error.status ?? 404
         res.send({ error: error.message })
     }
 
@@ -86,7 +92,6 @@ export async function SearchUsers(req, res) {
 export async function Create(req, res) {
     try {
         // VALIDATION 
-        console.log("CREATE")
         const { firstname, lastname, gender, category, email, phone, birthdate, city, country, photo, password, isAdmin } = req.body
         validateStrings([firstname, lastname, email, phone, city, country])
         validateGender(gender)
@@ -100,21 +105,18 @@ export async function Create(req, res) {
             error.status = 400
             throw error
         }
-        console.log("PASSED VALIDATIOn")
+        // BUILD USER BODY
+        const body = { firstname, lastname, gender, category, email, phone, birthdate, city, country, photo, password, isAdmin }
 
-
-        const payload = { firstname, lastname, gender, category, email, phone, birthdate, city, country, photo, password, isAdmin }
         // HASH PASSWORD
         const newPassword = await Promise.resolve(bcrypt.hash(password, salt))
-        console.log(newPassword)
-        payload.password = newPassword
-
-        console.log(payload)
-        const result = await UserModel.create(payload)
-        console.log(result)
-        delete result.doc.password
-        res.statusCode= 201
-        res.send(result.doc)
+        body.password = newPassword
+        // CREATE USER
+        const result = await UserModel.create(body)
+        // REMOVE PASSWORD
+        const {password:hidden, ...user} = result._doc
+        res.statusCode = 201
+        res.send(user)
     } catch (error) {
         res.statusCode = error.status ?? 500
         res.send({ error: error.message ?? 'Please try again in a moment' })
@@ -123,7 +125,6 @@ export async function Create(req, res) {
 export async function Update(req, res) {
     try {
         // VALIDATION 
-        console.log("UPDATE")
         const { id } = req.params
         if (id == null) {
             const error = new Error('Please provide a valid user Id')
@@ -137,49 +138,50 @@ export async function Update(req, res) {
         validateEmail(email)
         validatePhoto(photo)
         validateDate(birthdate)
+        // VALIDATE PASSWORD IF PRESENT
         if (password) {
             validatePassword(password)
         }
-
         // BUILD THE BODY
-        const payload = { firstname, lastname, gender, category, email, phone, birthdate, city, country, photo }
+        const body = { firstname, lastname, gender, category, email, phone, birthdate, city, country, photo }
 
 
         // PASSWORD IF NEW ONE PROVIDED
         if (password) {
             const newPassword = await Promise.resolve(bcrypt.hash(password, salt))
-            console.log(newPassword)
-            payload.password = newPassword
+            body.password = newPassword
         }
-        // ISADMIN ONLY IF CURRENT USER IS ADMIN
+
+        // ADD ISADMIN TO BODY ONLY IF CURRENT USER IS ADMIN
         if (req.user?.isAdmin && typeof isAdmin === 'boolean') {
-            payload.isAdmin = isAdmin
+            body.isAdmin = isAdmin
         }
-        console.log(birthdate)
 
-        await UserModel.findByIdAndUpdate(id, payload)
-
-        delete payload.password
-        payload.id = id
-        res.send(payload)
+        // UPDATE
+        await UserModel.findByIdAndUpdate(id, body)
+        // REMOVE PASSWORD
+        delete body.password
+        body.id = id
+        res.send(body)
     } catch (error) {
         res.statusCode = error.status ?? 404
         res.send({ error: error.message ?? 'User not found' })
     }
 }
-export async function Delete(req,res){
-    try{
-        console.log("DELETE")
+export async function Delete(req, res) {
+    try {
+        // GET ID
         const { id } = req.params
         if (id == null) {
             const error = new Error('Please provide a valid user Id')
             error.status = 400
             throw error
         }
+        // DELETE
         await UserModel.findByIdAndDelete(id)
         res.statusCode = 204
         res.send()
-    }catch(error){
+    } catch (error) {
         res.statusCode = error.status ?? 404
         res.send({ error: error.message ?? 'Could not delete user' })
 

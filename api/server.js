@@ -36,6 +36,8 @@ app.use(cors({methods:['GET','POST','PUT','DELETE']}))
 // console.log("MIGRATION COMPLETE")
 // })
 app.use(authrouter)
+
+// PROTECT ALL USERS ROUTES
 app.use('/users',auth, userRouter)
 // ==========
 // App start

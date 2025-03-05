@@ -48,7 +48,7 @@ export async function Login(req, res) {
         const errors = []
         verifyStrings([email, password], errors)
         const user = await UserModel.findOne({ email })
-        
+
         if (errors.length > 0) {
             const error = new Error('Please enter text values.')
             error.status = 400
@@ -59,20 +59,20 @@ export async function Login(req, res) {
             error.status = 401
             throw error
         }
-       
-        const validPassword = await  bcrypt.compare(password, user.password)
-        if(!validPassword){
+
+        const validPassword = await bcrypt.compare(password, user.password)
+        if (!validPassword) {
             const error = new Error('Incorrect credentials.')
             error.status = 401
             throw error
         }
         // ALL CHECKS PASSED SEND TOKEN
-        const token   = jwt.sign({user:{id:user.id,firstName:user.firstName, lastName:user.lastName,isAdmin: user.isAdmin}}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY })
+        const token = jwt.sign({ user: { id: user.id, firstname: user.firstname, lastname: user.lastname, isAdmin: user.isAdmin } }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY })
         res.statusCode = 200
-        res.send({token})
+        res.send({ token })
     } catch (error) {
-        if(error instanceof Error){
-            res.status(error.status).send({error:error.message})
+        if (error instanceof Error) {
+            res.status(error.status).send({ error: error.message })
         }
     }
 }
