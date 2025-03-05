@@ -37,8 +37,10 @@ button {
   width: fit-content;
 }
 button:disabled{
-  background-color: gray;
+  background: gray;
 }
 button:hover{
-  backdrop-filter: invert(75%);
-  background: linear-gradient(0deg, rgba(0,164,164,1) 21%, rgba(33,192,225,1) 56%, rgba(0,255,188,1) 97%);}
+  backdrop-filter: saturate(80%);
+  background: linear-gradient(0deg, rgba(0,164,164,1) 21%, rgba(33,192,225,1) 56%, rgba(0,255,188,1) 97%);
+
+}
