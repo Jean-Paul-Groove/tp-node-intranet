@@ -2,13 +2,15 @@ export interface User {
     _id:string,
     firstname:string,
     lastname:string,
+    gender:string,
     birthdate:Date,
     email:string,
     phone:string,
-    category:'Technique'|'Marketing'|'Client',
     city:string,
     country:string,
-    photo:string,
+    photo?:string,
+    category:'Technique'|'Marketing'|'Client',
+    isAdmin:boolean
     createdAt:Date,
     updatedAt:Date
 }

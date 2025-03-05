@@ -36,3 +36,9 @@ button {
   cursor: pointer;
   width: fit-content;
 }
+button:disabled{
+  background-color: gray;
+}
+button:hover{
+  backdrop-filter: invert(75%);
+  background: linear-gradient(0deg, rgba(0,164,164,1) 21%, rgba(33,192,225,1) 56%, rgba(0,255,188,1) 97%);}

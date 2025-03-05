@@ -1,5 +1,5 @@
 <template>
-  <div class="login">
+  <main class="login">
     <h1>Connexion</h1>
     <form @submit="onSubmit" class="login_form">
       <p>Pour vous connecter à l'intranet, entrez votre identifiant et votre mot de passe.</p>
@@ -20,7 +20,7 @@
       </label>
     <button class="login_button">Connexion</button>
     </form>
-  </div>
+  </main>
 </template>
 <script setup lang="ts">
 import axios from 'axios'

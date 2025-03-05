@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '../stores/auth'
 import ListView from '../views/ListView.vue'
+import { storeToRefs } from 'pinia'
+import ProfileView from '../views/ProfileView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,16 +24,60 @@ const router = createRouter({
       name: 'listing',
       component: ListView,
     },
+    {
+      path: '/profile/new',
+      name: 'profile-new',
+      component: ProfileView,
+      beforeEnter:(to) => {
+        const {userInfo} = useAuthStore()
+        console.log("ROUTER GUARD")
+        console.log(userInfo?.isAdmin)
+        if(userInfo?.isAdmin){
+          return true
+        }
+        return {name:'home'}
+      },
+    },
+    {
+      path: '/profile/:id',
+      name: 'profile',
+      component: ProfileView,
+      props:true,
+      beforeEnter:(to) => {
+        const {userInfo} = useAuthStore()
+        console.log("ROUTER GUARD")
+        console.log(userInfo?._id)
+        console.log(to.params.id)
+        console.log(userInfo?.isAdmin)
+        if(!userInfo || !to.params.id){
+          return false
+        }
+        if(userInfo.isAdmin){
+          return true
+        }
+        if(to.params.id === userInfo._id){
+          return true
+        }
+        return {name:'home'}
+      },
+    },
+   
   ],
 })
-router.beforeEach(async (to, from)=> {
-  if(to.name === 'login'){
+router.beforeEach(async (to) => {
+  if (to.name === 'login') {
     return true
   }
-  const {isConnected} = useAuthStore()
-  if(!isConnected){
-    return {name:'login'}
+  const authStore = useAuthStore()
+  const { isConnected } = storeToRefs(authStore)
+
+  if (!isConnected.value) {
+    const { fetchCurrentUser } = authStore
+    await fetchCurrentUser()
+    if (!isConnected.value) {
+      return { name: 'login' }
+    }
   }
-   return true
+  return true
 })
 export default router

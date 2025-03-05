@@ -2,16 +2,17 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { defineStore } from 'pinia'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import type { User } from '../types/user'
 
 export const useAuthStore = defineStore('user', () => {
-  const userInfo  = ref<{firstname:string,lastname:string,photo:string |undefined} |null>(null)
+  const userInfo  = ref<User|null>(null)
   const isConnected = computed(()=>  userInfo.value !=null)
   const token = ref<string|null>(null)
   const $router = useRouter()
 
   watch(()=>token.value, (newToken,oldToken)=>{
     if(oldToken == null && newToken != null){
-      void getUserInfo()
+      void fetchCurrentUser()
     }
   })
 
@@ -21,10 +22,6 @@ export const useAuthStore = defineStore('user', () => {
       setToken(formerToken)
     }
   })
-
-function onConnect(){
-    $router.push({'name':'login'})
-}
 
 function onDisconnect(){
     $router.push({'name':'login'})
@@ -40,11 +37,14 @@ function resetToken():void{
   localStorage.removeItem('JWT')
   token.value = null
 }
-async function getUserInfo():Promise<void>{
+async function fetchCurrentUser():Promise<void>{
   try{
-
+if(!token.value){
+  return
+}
       const res=  await axios.get(import.meta.env.VITE_API_URL+'/users/current')
       userInfo.value = res.data
+      console.log(res.data)
       if($router.currentRoute.value.name === 'login'){
         $router.push({name:'home'})
       }
@@ -54,5 +54,5 @@ async function getUserInfo():Promise<void>{
   }
 
 }
-  return { userInfo, isConnected,  token,onConnect,onDisconnect, setToken }
+  return { userInfo, isConnected,  token, onDisconnect,fetchCurrentUser, setToken,  }
 })

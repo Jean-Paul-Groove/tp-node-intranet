@@ -22,9 +22,7 @@ onMounted(()=>onGetRandom())
 
 async function onGetRandom():Promise<void>{
   try{
-const res = await axios.get(import.meta.env.VITE_API_URL+'/users/random', {withCredentials:true})
-console.log(import.meta.env.VITE_API_URL+'/users/random')
-console.log(res)
+const res = await axios.get(import.meta.env.VITE_API_URL+'/users/random')
 randomUser.value = res.data
   }catch(error){
     console.log(error)

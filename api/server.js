@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./config/database.js";
-import session from "express-session";
 import authrouter from "./routers/auth.js";
 import cors from 'cors'
 import userRouter from "./routers/user.js";
@@ -22,13 +21,8 @@ connectDB();
 
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())
-app.use(cors())
-app.use(session({
-  name: 'token',
-  secret: process.env.SECRET,
-  resave: false,
-  saveUninitialized: false
-}));
+app.use(cors({methods:['GET','POST','PUT','DELETE']}))
+
 // ==========
 // App routers
 // ==========

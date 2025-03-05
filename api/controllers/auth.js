@@ -46,7 +46,6 @@ export async function Login(req, res) {
     try {
         const { email, password } = req.body
         const errors = []
-        console.log( req.body)
         verifyStrings([email, password], errors)
         const user = await UserModel.findOne({ email })
         
@@ -67,23 +66,14 @@ export async function Login(req, res) {
             error.status = 401
             throw error
         }
-        // ALL CHECKS PASSED, INIT SESSION AND TOKEN
-        const token   = jwt.sign({user:{id:user.id,firstName:user.firstName, lastName:user.lastName}}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY })
-        console.log(token)
-        req.session.token = token
+        // ALL CHECKS PASSED SEND TOKEN
+        const token   = jwt.sign({user:{id:user.id,firstName:user.firstName, lastName:user.lastName,isAdmin: user.isAdmin}}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY })
         res.statusCode = 200
         res.send({token})
     } catch (error) {
         if(error instanceof Error){
             res.status(error.status).send({error:error.message})
-            console.log(res)
         }
-    }
-}
-
-export function Disconnect(req,res){
-    if(req.session){
-        req.session.destroy()
     }
 }
 // Private helpers

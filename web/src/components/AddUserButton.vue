@@ -1,6 +1,6 @@
 <template>
-    <button class="list-button" @click="onclick">
-    <FontAwesomeIcon icon="list" /> Liste
+    <button class="add-user-button" @click="onclick">
+    <FontAwesomeIcon icon="user" /> Ajouter
     </button>
 </template>
 
@@ -12,12 +12,12 @@ const $router = useRouter()
 
 
 function onclick(){
-    $router.push({name:'listing'})
+    $router.push({name:'profile-new'})
 }
 </script>
 
 <style scoped>
-.list-button{
+.add-user-button{
     height: 100%;
     background: none;
     display: flex;

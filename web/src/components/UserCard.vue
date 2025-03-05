@@ -1,7 +1,7 @@
 <template>
   <figure class="user-card">
     <img class="user-card_photo" :src="user.photo" alt="" />
-    <figCaption class="user-card_info">
+    <figcaption class="user-card_info">
       <p class="user-card_info_category" :style="{backgroundColor:getCategoryColor(user.category)}">{{ user.category }}</p>
       <p>
         <span class="user-card_info_name">
@@ -16,8 +16,8 @@
       <a class="user-card_info_contact" :href="`mailto:${user.email}?Subject=Bonjour`">
       {{ user.email }}
       </a>
-      <p > <FontAwesomeIcon icon="phone"/> <span class="user-card_info_contact">{{ user.phone }}</span></p>
       </p>
+      <p > <FontAwesomeIcon icon="phone"/> <span class="user-card_info_contact">{{ user.phone }}</span></p>
       
       <p class="user-card_info_birthday">
         <FontAwesomeIcon icon="cake-candles"/>
@@ -27,19 +27,36 @@
           ).toLocaleDateString("fr-FR", { month: "long" })}`
         }}
       </p>
-    </figCaption>
+      <div class="user-card_info_edit" v-if="canEdit">
+      <button @click="onEditProfile">EDITER</button>
+      <button @click="deleteModal = true">SUPPRIMER</button>
+      </div>
+  
+    </figcaption>
+  <DeleteModal v-if="deleteModal" @cancel="deleteModal = false" @delete="onDeleteProfile" :user="user" />
   </figure>
+
 </template>
 
 <script setup lang="ts">
 import dayjs from "dayjs";
 import type { User } from "../types/user";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { useRouter } from "vue-router";
+import { ref } from "vue";
+import DeleteModal from "./DeleteModal.vue";
+import axios from "axios";
 
 interface UserCardProps {
   user: User;
+  canEdit?:boolean
 }
-defineProps<UserCardProps>();
+const props = withDefaults(defineProps<UserCardProps>(), {canEdit:false});
+const emit =defineEmits(['delete'])
+const $router = useRouter()
+
+const deleteModal = ref<boolean>(false)
+
 function capitalizeString(string: string): string {
   return string[0].toUpperCase() + string.slice(1).toLowerCase();
 }
@@ -55,6 +72,17 @@ function getCategoryColor(category: User['category']){
         case "Client": return '#57f79a'
     }
 }
+function onEditProfile(){
+  $router.push({name:'profile', params:{id:props.user._id}})
+}
+async function onDeleteProfile(){
+ try{
+  await axios.delete(import.meta.env.VITE_API_URL+'/users/'+props.user._id)
+  emit('delete')
+ }catch(error){
+  console.log(error)
+ }
+}
 </script>
 
 <style scoped>
@@ -65,11 +93,13 @@ function getCategoryColor(category: User['category']){
   gap: 2rem;
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.212);
   position: relative;
-
+  text-wrap:nowrap;
+  text-overflow: ellipsis;
 }
 .user-card_photo {
   height: 100%;
   aspect-ratio: 1;
+  object-fit: cover;
 }
 .user-card_info {
   color: gray;
@@ -98,5 +128,11 @@ function getCategoryColor(category: User['category']){
     display: flex;
     gap: .5rem;
     align-items: center;
+}
+.user-card_info_edit{
+  display: flex;
+  gap: .5rem;
+  position: absolute;
+  bottom: 0;
 }
 </style>
