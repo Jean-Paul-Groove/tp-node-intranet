@@ -163,6 +163,7 @@ const categoryOptions = [
   { value: "Marketing", label: "Marketing" },
   { value: "Client", label: "Client" },
 ];
+const phoneRegex = /^([\+]?[(]?[0-9]{2,3}[)]?)?[-\s\.]?[0-9]{1,3}([-\s\.]?[0-9]{2,4}){4,6}$/
 const requiredString = ["firstname", "lastname", "email", "phone", "city", "country"];
 const EMPTY_USER:Omit<User, "_id"> ={
   firstname: "",
@@ -209,6 +210,10 @@ const errors = computed(() => {
     if (key === "category") {
       if (!categoryOptions.map((option) => option.value).includes(user.value.category)) {
         errors.category = "Cette catégorie n'est pas valide";
+      }
+    }   if (key === "phone") {
+      if (!phoneRegex.test(user.value.phone)) {
+        errors.phone = "Ce numéro n'est pas valide";
       }
     }
     if (key === "birthdate") {
