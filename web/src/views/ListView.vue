@@ -65,6 +65,9 @@ const pagination = ref<{ page: number; total: number; size: number }>({
   size: 10,
   total: 0,
 });
+watch(()=>listOptions.value, ()=>{
+  pagination.value.page = 1
+}, {deep:true})
 watch(
   () => [listOptions.value, pagination.value.page, pagination.value.size],
   debounce(fetchUsers, 500),

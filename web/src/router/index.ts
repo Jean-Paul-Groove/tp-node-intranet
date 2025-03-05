@@ -28,10 +28,8 @@ const router = createRouter({
       path: '/profile/new',
       name: 'profile-new',
       component: ProfileView,
-      beforeEnter:(to) => {
+      beforeEnter:() => {
         const {userInfo} = useAuthStore()
-        console.log("ROUTER GUARD")
-        console.log(userInfo?.isAdmin)
         if(userInfo?.isAdmin){
           return true
         }
@@ -45,10 +43,6 @@ const router = createRouter({
       props:true,
       beforeEnter:(to) => {
         const {userInfo} = useAuthStore()
-        console.log("ROUTER GUARD")
-        console.log(userInfo?._id)
-        console.log(to.params.id)
-        console.log(userInfo?.isAdmin)
         if(!userInfo || !to.params.id){
           return false
         }

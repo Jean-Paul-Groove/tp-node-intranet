@@ -136,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeMount, ref } from "vue";
+import { computed, onBeforeMount, ref, watch } from "vue";
 import type { User } from "../types/user";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -144,7 +144,7 @@ import { storeToRefs } from "pinia";
 import { useAuthStore } from "../stores/auth";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { faWarning } from "@fortawesome/free-solid-svg-icons";
-import { useRouter } from "vue-router";
+import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 
 // Props
 interface ProfileViewProps {
@@ -164,13 +164,7 @@ const categoryOptions = [
   { value: "Client", label: "Client" },
 ];
 const requiredString = ["firstname", "lastname", "email", "phone", "city", "country"];
-
-// Refs
-const $router = useRouter();
-const pageType = ref<"new" | "edit-current" | "edit-other">("new");
-const { userInfo } = storeToRefs(useAuthStore());
-const shouldValidate = ref<boolean>(false);
-const user = ref<Omit<User, "_id">>({
+const EMPTY_USER:Omit<User, "_id"> ={
   firstname: "",
   lastname: "",
   gender: "",
@@ -184,7 +178,14 @@ const user = ref<Omit<User, "_id">>({
   isAdmin: false,
   createdAt: new Date(),
   updatedAt: new Date(),
-});
+}
+// Refs
+const $router = useRouter();
+const $route = useRoute();
+const pageType = ref<"new" | "edit-current" | "edit-other">("new");
+const { userInfo } = storeToRefs(useAuthStore());
+const shouldValidate = ref<boolean>(false);
+const user = ref<Omit<User, "_id">>(EMPTY_USER);
 const password = ref("");
 const confirmPassword = ref("");
 const success = ref<boolean>(false)
@@ -211,8 +212,8 @@ const errors = computed(() => {
       }
     }
     if (key === "birthdate") {
-      if (dayjs().diff(dayjs(user.value.birthdate)) < 0) {
-        errors.birthdate = "Cette date de naissance est invalide";
+      if (dayjs().diff(dayjs(user.value.birthdate), 'day') < 1) {
+        errors.birthdate = "Cette date de naissance est trop récente";
       }
     }
   }
@@ -229,7 +230,10 @@ const errors = computed(() => {
   }
   return errors;
 });
-onBeforeMount(() => {
+onBeforeMount(init);
+watch(()=> [$route.name, $route.params], init,{deep:true})
+
+function init(){
   const routeName = $router.currentRoute.value.name;
   if (props.id && routeName === "profile") {
     pageType.value = userInfo.value?._id === props.id ? "edit-current" : "edit-other";
@@ -237,10 +241,11 @@ onBeforeMount(() => {
     return;
   }
   if (routeName === "profile-new") {
+    user.value = EMPTY_USER
     return;
   }
   $router.replace({ name: "home" });
-});
+}
 
 async function fetchUser(): Promise<void> {
   try {
@@ -258,20 +263,20 @@ function onChangeBirthDate(e: Event): void {
 async function onSubmit(e: Event): Promise<void> {
   e.preventDefault();
   shouldValidate.value = true;
-  console.log('ONSUBMIT')
   try {
     if (Object.keys(errors.value).length === 0) {
       if (pageType.value === "new") {
         const data = { ...user.value, password: password.value };
         await axios.post(import.meta.env.VITE_API_URL + "/users", data);
+        onSuccess()
       } else {
         const data =
           password.value.length > 0
             ? { ...user.value, password: password.value }
             : { ...user.value };
         await axios.put(import.meta.env.VITE_API_URL + "/users/" + props.id, data);
+        onSuccess()
       }
-    onSuccess()
     }
   } catch (error) {
     console.log(error);
@@ -280,7 +285,6 @@ async function onSubmit(e: Event): Promise<void> {
 function onSuccess(){
   success.value = true
   setTimeout(()=>{
-    console.log("HEYO")
     $router.push({ name: "listing" });
   }, 2000)
 }
